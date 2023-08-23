@@ -5,6 +5,7 @@ import mysql.connector
 from PIL import Image, ImageTk
 import io
 import urllib.request
+
 # Connect to the MySQL database server
 db = mysql.connector.connect(
     host="localhost",
@@ -26,7 +27,8 @@ CREATE TABLE IF NOT EXISTS cars (
     company VARCHAR(255),
     car_name VARCHAR(255),
     year INT,
-    image_url VARCHAR(1000)  -- Increase the length of image_url column
+    engine_type VARCHAR(20),
+    image_url VARCHAR(1000)
 )
 """)
 db.commit()
@@ -40,18 +42,32 @@ def add_details():
         if car_name:
             year = simpledialog.askinteger("Add Details", "Enter Year:")
             
-            image_url = simpledialog.askstring("Add Details", "Enter Image URL (optional):")
+            engine_type_menu = tk.Toplevel(root)
+            engine_type_menu.title("Select Engine Type")
+            
+            def set_engine_type(selected_engine_type):
+                engine_type_menu.destroy()
+                add_car_with_engine_type(company, car_name, year, selected_engine_type)
 
-            cursor.execute("INSERT INTO cars (company, car_name, year, image_url) VALUES (%s, %s, %s, %s)",
-                           (company, car_name, year, image_url))
-            db.commit()
-            messagebox.showinfo("Success", "Details added successfully!")
-        else:
-            messagebox.showerror("Error", "Car Name is required.")
-    else:
-        messagebox.showerror("Error", "Company Name is required.")
+            petrol_button = tk.Button(engine_type_menu, text="Petrol", command=lambda: set_engine_type("Petrol"))
+            diesel_button = tk.Button(engine_type_menu, text="Diesel", command=lambda: set_engine_type("Diesel"))
+            electric_button = tk.Button(engine_type_menu, text="Electric", command=lambda: set_engine_type("Electric"))
 
-def show_details():
+            petrol_button.pack(pady=5)
+            diesel_button.pack(pady=5)
+            electric_button.pack(pady=5)
+
+def add_car_with_engine_type(company, car_name, year, engine_type):
+    image_url = simpledialog.askstring("Add Details", "Enter Image URL:")
+    
+    cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
+                   (company, car_name, year, engine_type, image_url))
+    db.commit()
+    messagebox.showinfo("Success", "Details added successfully!")
+
+def show_details(cursor):
+    clear_widgets(root)
+    
     cursor.execute("SELECT DISTINCT company FROM cars")
     companies = cursor.fetchall()
 
@@ -61,56 +77,75 @@ def show_details():
     
     company_names = [company[0] for company in companies]
 
-    def show_selected_company_details(selected_company):
-        cursor.execute("SELECT car_name, year, image_url FROM cars WHERE company = %s", (selected_company,))
-        car_details = cursor.fetchall()
-
-        details_window = tk.Toplevel(root)
-        details_window.title(f"{selected_company} Car Details")
-
-        for car in car_details:
-            car_frame = ttk.Frame(details_window)
-            car_frame.pack(padx=10, pady=10, fill="both", expand=True)
-
-            car_label = tk.Label(car_frame, text=f"Car Name: {car[0]}, Year: {car[1]}")
-            car_label.pack()
-
-            if car[2]:  # If there's an image URL
-                print("Image URL:", car[2])
-                
-                try:
-                    response = urllib.request.urlopen(car[2])  # Fetch the image from the URL
-                    img_data = response.read()
-                    img = Image.open(io.BytesIO(img_data))
-                    img = img.resize((200, 150), Image.BILINEAR)  # Use Image.BILINEAR for resizing
-                    img = ImageTk.PhotoImage(img)
-
-                    image_label = tk.Label(car_frame, image=img)
-                    image_label.image = img
-                    image_label.pack(padx=5, pady=5)
-                except Exception as e:
-                    print("Error loading image:", e)
-
-    top = tk.Toplevel(root)
-    top.title("Select Company")
-
     for company in company_names:
-        company_button = tk.Button(top, text=company,
-                                   command=lambda comp=company: show_selected_company_details(comp))
+        company_button = tk.Button(root, text=company,
+                                   command=lambda comp=company: show_company_models(comp, cursor))
         company_button.pack(pady=5)
 
+def show_company_models(selected_company, cursor):
+    clear_widgets(root)
+    
+    cursor.execute("SELECT DISTINCT car_name FROM cars WHERE company = %s", (selected_company,))
+    car_names = cursor.fetchall()
 
+    for car in car_names:
+        car_button = tk.Button(root, text=car[0],
+                               command=lambda car_name=car[0]: show_car_details(selected_company, car_name, cursor))
+        car_button.pack(pady=5)
+
+def show_car_details(company, car_name, cursor):
+    clear_widgets(root)
+    
+    cursor.execute("SELECT car_name, year, engine_type, image_url FROM cars WHERE company = %s AND car_name = %s",
+                   (company, car_name))
+    car_details = cursor.fetchall()
+
+    for car in car_details:
+        car_frame = tk.Frame(root, bg="white")
+        car_frame.pack(padx=20, pady=20)
+
+        car_label = tk.Label(car_frame, text=f"Car Name: {car[0]}, Year: {car[1]}, Engine Type: {car[2]}", bg="white")
+        car_label.pack()
+
+        if car[3]:  # If there's an image URL
+            try:
+                response = urllib.request.urlopen(car[3])  # Fetch the image from the URL
+                img_data = response.read()
+                img = Image.open(io.BytesIO(img_data))
+                img = img.resize((200, 150), Image.BILINEAR)  # Use Image.BILINEAR for resizing
+                img = ImageTk.PhotoImage(img)
+
+                image_label = tk.Label(car_frame, image=img, bg="white")
+                image_label.image = img
+                image_label.pack(padx=5, pady=5)
+            except Exception as e:
+                print("Error loading image:", e)
+def clear_widgets(parent):
+    for widget in parent.winfo_children():
+        widget.destroy()
 # Create the main window
 root = tk.Tk()
 root.title("Car Database")
-
-add_button = tk.Button(root, text="Add Details", command=add_details)
-add_button.pack(pady=10)
-
-show_button = tk.Button(root, text="Show Details", command=show_details)
-show_button.pack(pady=10)
-
+# Load the background image
+bg_image = Image.open("background.jpg")  # Replace with your image path
+bg_photo = ImageTk.PhotoImage(bg_image)
+# Get the dimensions of the background image
+bg_width = bg_photo.width()
+bg_height = bg_photo.height()
+# Set the geometry to match the dimensions of the background image
+root.geometry(f"{bg_width}x{bg_height}")
+# Create a label to display the background image
+bg_label = tk.Label(root, image=bg_photo)
+bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+# Function to create smaller buttons
+def create_button(parent, text, command):
+    button = tk.Button(parent, text=text, command=command, width=int(bg_width * 0.01), height=int(bg_height * 0.005))
+    return button
+# Create buttons
+add_button = create_button(root, "Add", add_details)
+add_button.pack(pady=int(bg_height * 0.003))
+show_button = create_button(root, "Show", lambda: show_details(cursor))
+show_button.pack(pady=int(bg_height * 0.003))
 root.mainloop()
-
 # Close the database connection when the GUI is closed
 db.close()
