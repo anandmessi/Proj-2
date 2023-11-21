@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import io
 import urllib.request
 
+from tkinter import filedialog
 # Connect to the MySQL database server
 db = mysql.connector.connect(
     host="localhost",
@@ -53,13 +54,20 @@ def add_details():
             tk.Button(engine_type_menu, text="Electric", command=lambda: set_engine_type("Electric")).pack(pady=5)
 
 # Function to add car details with engine type
-def add_car_with_engine_type(company, car_name, year, engine_type):
-    image_url = simpledialog.askstring("Add Details", "Enter Image URL:")
-    
-    cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
-                   (company, car_name, year, engine_type, image_url))
-    db.commit()
-    messagebox.showinfo("Success", "Details added successfully!")
+def add_car_with_engine_type_and_image(company, car_name, year, engine_type):
+    # Ask the user to select an image file
+    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.gif")])
+
+    if file_path:
+        # Read image data from the selected file
+        with open(file_path, "rb") as file:
+            img_data = file.read()
+
+        # Insert data into the table
+        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_data) VALUES (%s, %s, %s, %s, %s)",
+                       (company, car_name, year, engine_type, img_data))
+        db.commit()
+        messagebox.showinfo("Success", "Details added successfully!")
 
 # Function to show details
 def show_details(cursor):
@@ -89,7 +97,7 @@ def show_company_models(selected_company, cursor):
 def show_car_details(company, car_name, cursor):
     clear_widgets(root)
     
-    cursor.execute("SELECT car_name, year, engine_type, image_url FROM cars WHERE company = %s AND car_name = %s",
+    cursor.execute("SELECT car_name, year, engine_type, image_data FROM cars WHERE company = %s AND car_name = %s",
                    (company, car_name))
     car_details = cursor.fetchall()
 
@@ -99,19 +107,12 @@ def show_car_details(company, car_name, cursor):
 
         tk.Label(car_frame, text=f"Car Name: {car[0]}, Year: {car[1]}, Engine Type: {car[2]}", bg="white").pack()
 
-        if car[3]:
+        if car[3]:  # Check if image_data is not empty
             try:
-                response = urllib.request.urlopen(car[3])
-                img_data = response.read()
-
-                # Check if the image data is not empty
-                if img_data:
-                    img = Image.open(io.BytesIO(img_data))
-                    img = img.resize((200, 150), Image.BILINEAR)
-                    img = ImageTk.PhotoImage(img)
-                    tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
-                else:
-                    print("Empty image data received.")
+                img = Image.open(io.BytesIO(car[3]))
+                img = img.resize((200, 150), Image.BILINEAR)
+                img = ImageTk.PhotoImage(img)
+                tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
             except Exception as e:
                 print("Error loading image:", e)
 
