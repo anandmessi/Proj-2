@@ -135,12 +135,12 @@ def edit_details():
             edit_window.title("Edit Car Details")
 
             # Fetch current details for the selected car
-            cursor.execute("SELECT year, engine_type, image_url FROM cars WHERE company = %s AND car_name = %s",
+            cursor.execute("SELECT year, engine_type, image_data FROM cars WHERE company = %s AND car_name = %s",
                            (selected_company, selected_car))
             current_details = cursor.fetchone()
 
             if current_details:
-                current_year, current_engine_type, current_image_url = current_details
+                current_year, current_engine_type, current_image_data = current_details
 
                 # Create entry fields with current values
                 year_var = tk.StringVar(value=current_year)
@@ -155,14 +155,26 @@ def edit_details():
                 engine_type_entry = tk.Entry(edit_window, textvariable=engine_type_var)
                 engine_type_entry.pack()
 
-                tk.Label(edit_window, text="Image URL:").pack()
-                image_url_var = tk.StringVar(value=current_image_url)
-                image_url_entry = tk.Entry(edit_window, textvariable=image_url_var)
-                image_url_entry.pack()
+                tk.Label(edit_window, text="Image File:").pack()
+
+                # Function to handle selecting an image file
+                def select_image_file():
+                    nonlocal current_image_data
+                    image_path = filedialog.askopenfilename(title="Select Image File",
+                                                             filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+                    if image_path:
+                        try:
+                            with open(image_path, "rb") as image_file:
+                                current_image_data = image_file.read()
+                        except Exception as e:
+                            messagebox.showerror("Error", f"Error reading image file: {e}")
+
+                # Button to select image file
+                tk.Button(edit_window, text="Select Image", command=select_image_file).pack()
 
                 # Function to handle save button click
                 def save_button_click():
-                    save_changes(selected_company, selected_car, year_var.get(), engine_type_var.get(), image_url_var.get())
+                    save_changes(selected_company, selected_car, year_var.get(), engine_type_var.get(), current_image_data)
                     # Close the edit window
                     edit_window.destroy()
 
