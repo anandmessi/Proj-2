@@ -97,7 +97,7 @@ def show_company_models(selected_company, cursor):
 def show_car_details(company, car_name, cursor):
     clear_widgets(root)
     
-    cursor.execute("SELECT car_name, year, engine_type, image_data FROM cars WHERE company = %s AND car_name = %s",
+    cursor.execute("SELECT car_name, year, engine_type, image_url FROM cars WHERE company = %s AND car_name = %s",
                    (company, car_name))
     car_details = cursor.fetchall()
 
@@ -107,14 +107,14 @@ def show_car_details(company, car_name, cursor):
 
         tk.Label(car_frame, text=f"Car Name: {car[0]}, Year: {car[1]}, Engine Type: {car[2]}", bg="white").pack()
 
-        if car[3]:  # Check if image_data is not empty
+        if car[3]:
             try:
-                img = Image.open(io.BytesIO(car[3]))
+                response = urllib.request.urlopen(car[3])
+                img_data = response.read()
+                img = Image.open(io.BytesIO(img_data))
                 img = img.resize((200, 150), Image.BILINEAR)
                 img = ImageTk.PhotoImage(img)
-                img_label = tk.Label(car_frame, image=img, bg="white")
-                img_label.image = img
-                img_label.pack(padx=5, pady=5)
+                tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
             except Exception as e:
                 print("Error loading image:", e)
 
