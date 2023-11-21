@@ -103,10 +103,15 @@ def show_car_details(company, car_name, cursor):
             try:
                 response = urllib.request.urlopen(car[3])
                 img_data = response.read()
-                img = Image.open(io.BytesIO(img_data))
-                img = img.resize((200, 150), Image.BILINEAR)
-                img = ImageTk.PhotoImage(img)
-                tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
+
+                # Check if the image data is not empty
+                if img_data:
+                    img = Image.open(io.BytesIO(img_data))
+                    img = img.resize((200, 150), Image.BILINEAR)
+                    img = ImageTk.PhotoImage(img)
+                    tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
+                else:
+                    print("Empty image data received.")
             except Exception as e:
                 print("Error loading image:", e)
 
