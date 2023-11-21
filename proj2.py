@@ -112,7 +112,9 @@ def show_car_details(company, car_name, cursor):
                 img = Image.open(io.BytesIO(car[3]))
                 img = img.resize((200, 150), Image.BILINEAR)
                 img = ImageTk.PhotoImage(img)
-                tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
+                img_label = tk.Label(car_frame, image=img, bg="white")
+                img_label.image = img
+                img_label.pack(padx=5, pady=5)
             except Exception as e:
                 print("Error loading image:", e)
 
@@ -189,7 +191,7 @@ def delete_button_click():
 # Function to delete a company and its cars
 def delete_company(selected_company):
     # Delete the company and its cars from the database
-    cursor.execute("""
+    cursor.execute(""
     DELETE FROM cars 
     WHERE company = %s
     "", (selected_company,))
