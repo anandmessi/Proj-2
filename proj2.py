@@ -191,10 +191,10 @@ def delete_button_click():
 # Function to delete a company and its cars
 def delete_company(selected_company):
     # Delete the company and its cars from the database
-    cursor.execute(""
+    cursor.execute("""
     DELETE FROM cars 
     WHERE company = %s
-    "", (selected_company,))
+    """, (selected_company,))
     db.commit()
     messagebox.showinfo("Success", f"{selected_company} and its cars deleted successfully!")
     # Show updated details
