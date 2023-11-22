@@ -48,20 +48,17 @@ def add_details():
             engine_type_menu = tk.Toplevel(root)
             engine_type_menu.title("Select Engine Type")
             
-            def set_engine_type(selected_engine_type):
-                engine_type_menu.destroy()
+            # Function to handle file selection
+            def choose_image():
+                file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+                if file_path:
+                    cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
+                                   (company, car_name, year, selected_engine_type, file_path))
+                    db.commit()
+                    messagebox.showinfo("Success", "Details added successfully!")
                 
-                # Function to handle file selection
-                def choose_image():
-                    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
-                    if file_path:
-                        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
-                                       (company, car_name, year, selected_engine_type, file_path))
-                        db.commit()
-                        messagebox.showinfo("Success", "Details added successfully!")
-                
-                # Button to choose image file
-                tk.Button(engine_type_menu, text="Choose Image", command=choose_image).pack()
+            # Button to choose image file
+            tk.Button(engine_type_menu, text="Choose Image", command=choose_image).pack()
 
             # Create buttons for engine types
             engine_types = ["Petrol", "Diesel", "Electric", "Hybrid"]
@@ -115,7 +112,6 @@ def show_car_details(company, car_name, cursor):
                 tk.Label(car_frame, image=img, bg="white").pack(padx=5, pady=5)
             except Exception as e:
                 print("Error loading image:", e)
-
 # Function to edit details
 def edit_details():
     selected_company = simpledialog.askstring("Edit Details", "Enter Company Name:")
@@ -150,9 +146,8 @@ def edit_details():
                 engine_type_entry.pack()
 
                 tk.Label(edit_window, text="Image URL:").pack()
-                image_url_entry = tk.Entry(edit_window, textvariable=image_url_var)
-                image_url_entry.pack()
-# Function to handle file selection
+
+                # Function to handle file selection
                 def choose_image():
                     file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
                     if file_path:
@@ -254,7 +249,7 @@ add_button.pack(pady=int(bg_height * 0.003))
 show_button = create_button(root, "Show", lambda: show_details(cursor))
 show_button.pack(pady=int(bg_height * 0.003))
 
-edit_button = create_button(root, "Edit", edit_details)
+edit_button= create_button(root, "Edit", edit_details)
 edit_button.pack(pady=int(bg_height * 0.003))
 
 delete_button = create_button(root, "Delete", delete_button_click)
