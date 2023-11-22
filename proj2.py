@@ -1,16 +1,14 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog
+from tkinter import messagebox, simpledialog, filedialog
 import mysql.connector
 from PIL import Image, ImageTk
-import io
-import urllib.request
 
-from tkinter import filedialog
 # Connect to the MySQL database server
 db = mysql.connector.connect(
     host="localhost",
     user="root",
-    password="2006"
+    password="2006",
+    database="car_database"  # Add this line to specify the database
 )
 
 # Create a cursor
@@ -33,6 +31,11 @@ CREATE TABLE IF NOT EXISTS cars (
 """)
 db.commit()
 
+# Function to clear widgets from the window
+def clear_widgets(parent):
+    for widget in parent.winfo_children():
+        widget.destroy()
+
 # Function to add details
 def add_details():
     company = simpledialog.askstring("Add Details", "Enter Company Name:")
@@ -47,16 +50,23 @@ def add_details():
             
             def set_engine_type(selected_engine_type):
                 engine_type_menu.destroy()
-                def add_car_with_engine_type(company, car_name, year, engine_type):
-    # Ask user to choose an image file
-    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+                
+                # Function to handle file selection
+                def choose_image():
+                    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+                    if file_path:
+                        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
+                                       (company, car_name, year, selected_engine_type, file_path))
+                        db.commit()
+                        messagebox.showinfo("Success", "Details added successfully!")
+                
+                # Button to choose image file
+                tk.Button(engine_type_menu, text="Choose Image", command=choose_image).pack()
 
-    # Check if a file is selected
-    if file_path:
-        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
-                       (company, car_name, year, engine_type, file_path))
-        db.commit()
-        messagebox.showinfo("Success", "Details added successfully!")")
+            # Create buttons for engine types
+            engine_types = ["Petrol", "Diesel", "Electric", "Hybrid"]
+            for engine_type in engine_types:
+                tk.Button(engine_type_menu, text=engine_type, command=lambda et=engine_type: set_engine_type(et)).pack()
 
 # Function to show details
 def show_details(cursor):
@@ -104,12 +114,7 @@ def show_car_details(company, car_name, cursor):
                 tk.Label(car_frame, image=img, bg="white").image = img
                 tk.Label(car_frame, image=img, bg="white").pack(padx=5, pady=5)
             except Exception as e:
-                print("Error loading image:", e))
-
-# Function to clear widgets from the window
-def clear_widgets(parent):
-    for widget in parent.winfo_children():
-        widget.destroy()
+                print("Error loading image:", e)
 
 # Function to edit details
 def edit_details():
@@ -147,8 +152,7 @@ def edit_details():
                 tk.Label(edit_window, text="Image URL:").pack()
                 image_url_entry = tk.Entry(edit_window, textvariable=image_url_var)
                 image_url_entry.pack()
-
-                # Function to handle file selection
+# Function to handle file selection
                 def choose_image():
                     file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
                     if file_path:
@@ -160,15 +164,6 @@ def edit_details():
                 # Function to handle save button click
                 def save_button_click():
                     save_changes(selected_company, selected_car, year_var.get(), engine_type_var.get(), image_url_var.get())
-                    # Close the edit window
-                    edit_window.destroy()
-
-                # Save button
-                tk.Button(edit_window, text="Save Changes", command=save_button_click).pack()
-
-                # Function to handle save button click
-                def save_button_click():
-                    save_changes(selected_company, selected_car, year_var.get(), engine_type_var.get(), current_image_data)
                     # Close the edit window
                     edit_window.destroy()
 
