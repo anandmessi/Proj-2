@@ -47,27 +47,16 @@ def add_details():
             
             def set_engine_type(selected_engine_type):
                 engine_type_menu.destroy()
-                add_car_with_engine_type(company, car_name, year, selected_engine_type)
+                def add_car_with_engine_type(company, car_name, year, engine_type):
+    # Ask user to choose an image file
+    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
 
-            tk.Button(engine_type_menu, text="Petrol", command=lambda: set_engine_type("Petrol")).pack(pady=5)
-            tk.Button(engine_type_menu, text="Diesel", command=lambda: set_engine_type("Diesel")).pack(pady=5)
-            tk.Button(engine_type_menu, text="Electric", command=lambda: set_engine_type("Electric")).pack(pady=5)
-
-# Function to add car details with engine type
-def add_car_with_engine_type_and_image(company, car_name, year, engine_type):
-    # Ask the user to select an image file
-    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image files", "*.png;*.jpg;*.jpeg;*.gif")])
-
+    # Check if a file is selected
     if file_path:
-        # Read image data from the selected file
-        with open(file_path, "rb") as file:
-            img_data = file.read()
-
-        # Insert data into the table
-        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_data) VALUES (%s, %s, %s, %s, %s)",
-                       (company, car_name, year, engine_type, img_data))
+        cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
+                       (company, car_name, year, engine_type, file_path))
         db.commit()
-        messagebox.showinfo("Success", "Details added successfully!")
+        messagebox.showinfo("Success", "Details added successfully!")")
 
 # Function to show details
 def show_details(cursor):
@@ -109,14 +98,13 @@ def show_car_details(company, car_name, cursor):
 
         if car[3]:
             try:
-                response = urllib.request.urlopen(car[3])
-                img_data = response.read()
-                img = Image.open(io.BytesIO(img_data))
+                img = Image.open(car[3])
                 img = img.resize((200, 150), Image.BILINEAR)
                 img = ImageTk.PhotoImage(img)
-                tk.Label(car_frame, image=img, bg="white").image = img.pack(padx=5, pady=5)
+                tk.Label(car_frame, image=img, bg="white").image = img
+                tk.Label(car_frame, image=img, bg="white").pack(padx=5, pady=5)
             except Exception as e:
-                print("Error loading image:", e)
+                print("Error loading image:", e))
 
 # Function to clear widgets from the window
 def clear_widgets(parent):
@@ -135,16 +123,17 @@ def edit_details():
             edit_window.title("Edit Car Details")
 
             # Fetch current details for the selected car
-            cursor.execute("SELECT year, engine_type, image_data FROM cars WHERE company = %s AND car_name = %s",
+            cursor.execute("SELECT year, engine_type, image_url FROM cars WHERE company = %s AND car_name = %s",
                            (selected_company, selected_car))
             current_details = cursor.fetchone()
 
             if current_details:
-                current_year, current_engine_type, current_image_data = current_details
+                current_year, current_engine_type, current_image_url = current_details
 
                 # Create entry fields with current values
                 year_var = tk.StringVar(value=current_year)
                 engine_type_var = tk.StringVar(value=current_engine_type)
+                image_url_var = tk.StringVar(value=current_image_url)
 
                 # Create labels and entry widgets for each field
                 tk.Label(edit_window, text="Year:").pack()
@@ -155,22 +144,27 @@ def edit_details():
                 engine_type_entry = tk.Entry(edit_window, textvariable=engine_type_var)
                 engine_type_entry.pack()
 
-                tk.Label(edit_window, text="Image File:").pack()
+                tk.Label(edit_window, text="Image URL:").pack()
+                image_url_entry = tk.Entry(edit_window, textvariable=image_url_var)
+                image_url_entry.pack()
 
-                # Function to handle selecting an image file
-                def select_image_file():
-                    nonlocal current_image_data
-                    image_path = filedialog.askopenfilename(title="Select Image File",
-                                                             filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
-                    if image_path:
-                        try:
-                            with open(image_path, "rb") as image_file:
-                                current_image_data = image_file.read()
-                        except Exception as e:
-                            messagebox.showerror("Error", f"Error reading image file: {e}")
+                # Function to handle file selection
+                def choose_image():
+                    file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+                    if file_path:
+                        image_url_var.set(file_path)
 
-                # Button to select image file
-                tk.Button(edit_window, text="Select Image", command=select_image_file).pack()
+                # Button to choose image file
+                tk.Button(edit_window, text="Choose Image", command=choose_image).pack()
+
+                # Function to handle save button click
+                def save_button_click():
+                    save_changes(selected_company, selected_car, year_var.get(), engine_type_var.get(), image_url_var.get())
+                    # Close the edit window
+                    edit_window.destroy()
+
+                # Save button
+                tk.Button(edit_window, text="Save Changes", command=save_button_click).pack()
 
                 # Function to handle save button click
                 def save_button_click():
