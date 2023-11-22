@@ -49,21 +49,18 @@ def add_details():
             engine_type_menu.title("Select Engine Type")
             
             # Function to handle file selection
-            def choose_image():
+            def choose_image(selected_engine_type):
                 file_path = filedialog.askopenfilename(title="Select Image File", filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
                 if file_path:
                     cursor.execute("INSERT INTO cars (company, car_name, year, engine_type, image_url) VALUES (%s, %s, %s, %s, %s)",
                                    (company, car_name, year, selected_engine_type, file_path))
                     db.commit()
                     messagebox.showinfo("Success", "Details added successfully!")
-                
-            # Button to choose image file
-            tk.Button(engine_type_menu, text="Choose Image", command=choose_image).pack()
-
+            
             # Create buttons for engine types
             engine_types = ["Petrol", "Diesel", "Electric", "Hybrid"]
             for engine_type in engine_types:
-                tk.Button(engine_type_menu, text=engine_type, command=lambda et=engine_type: set_engine_type(et)).pack()
+                tk.Button(engine_type_menu, text=engine_type, command=lambda et=engine_type: choose_image(et)).pack()
 
 # Function to show details
 def show_details(cursor):
