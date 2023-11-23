@@ -301,6 +301,43 @@ def delete_car(selected_company, selected_car):
     # Show updated details
     show_details(cursor)
 
+# Function to edit car details
+def edit_details():
+    # Fetch distinct companies
+    cursor.execute("SELECT DISTINCT company FROM cars")
+    companies = cursor.fetchall()
+
+    if not companies:
+        messagebox.showinfo("No Data", "No companies found. Please add data first.")
+        return
+
+    # Create a list of company names
+    company_name_list = [company[0] for company in companies]
+
+    # Create a custom dialog for selecting the company
+    company_dialog = CustomDialog(root, "Company", company_name_list)
+    root.wait_window(company_dialog)
+
+    selected_company = company_dialog.result
+
+    if selected_company:
+        # Fetch distinct car names for the selected company
+        cursor.execute("SELECT DISTINCT car_name FROM cars WHERE company = %s", (selected_company,))
+        car_names = cursor.fetchall()
+
+        if car_names:
+            # Create a list of car names
+            car_name_list = [car[0] for car in car_names]
+
+            # Create a custom dialog for selecting the car
+            car_dialog = CustomDialog(root, "Car", car_name_list)
+            root.wait_window(car_dialog)
+
+            selected_car = car_dialog.result
+
+            if selected_car:
+                show_edit_options(selected_company, selected_car)
+
 # Create the main window
 root = tk.Tk()
 root.title("Car Database")
