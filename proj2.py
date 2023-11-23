@@ -124,9 +124,9 @@ def show_car_details(company, car_name, cursor):
         details_frame = tk.Frame(car_frame, bg="white")
         details_frame.pack(side=tk.LEFT, padx=20)
 
-        tk.Label(details_frame, text=f"Car Name: {car[0]}", bg="white").pack(anchor='w')
-        tk.Label(details_frame, text=f"Year: {car[1]}", bg="white").pack(anchor='w')
-        tk.Label(details_frame, text=f"Engine Type: {car[2]}", bg="white").pack(anchor='w')
+        tk.Label(details_frame, text=f"Car Name: {car[0]}", bg="white", font=("Helvetica", 14)).pack(anchor='w')
+        tk.Label(details_frame, text=f"Year: {car[1]}", bg="white", font=("Helvetica", 14)).pack(anchor='w')
+        tk.Label(details_frame, text=f"Engine Type: {car[2]}", bg="white", font=("Helvetica", 14)).pack(anchor='w')
 
         # Right side: Image
         image_frame = tk.Frame(car_frame, bg="white")
@@ -144,7 +144,7 @@ def show_car_details(company, car_name, cursor):
                 print("Error loading image:", e)
 
         # Back button
-        back_button = tk.Button(car_frame, text="Back", command=lambda: show_models(company, cursor))
+        back_button = tk.Button(car_frame, text="Back", command=lambda: show_models(company, cursor), font=("Helvetica", 12))
         back_button.pack(side=tk.BOTTOM, pady=20)
 
 # Function to show edit options for the selected company and car
@@ -157,14 +157,14 @@ def show_edit_options(selected_company, selected_car):
         edit_car_details(selected_company, selected_car)
 
     # Edit button
-    tk.Button(edit_options_window, text="Edit Car Details", command=edit_button_click).pack()
+    tk.Button(edit_options_window, text="Edit Car Details", command=edit_button_click, font=("Helvetica", 12)).pack()
 
     # Function to handle delete button click
     def delete_button_click():
         delete_car(selected_company, selected_car)
 
     # Delete button
-    tk.Button(edit_options_window, text="Delete Car", command=delete_button_click).pack()
+    tk.Button(edit_options_window, text="Delete Car", command=delete_button_click, font=("Helvetica", 12)).pack()
 
 def edit_car_details(selected_company, selected_car):
     edit_window = tk.Toplevel(root)
@@ -182,22 +182,22 @@ def edit_car_details(selected_company, selected_car):
         car_name_var = tk.StringVar(value=current_car_name)
         year_var = tk.StringVar(value=current_year)
         engine_type_var = tk.StringVar(value=current_engine_type)
-        image_url_var= tk.StringVar(value=current_image_url)
+        image_url_var = tk.StringVar(value=current_image_url)
 
         # Create labels and entry widgets for each field
-        tk.Label(edit_window, text="Car Name:").pack()
+        tk.Label(edit_window, text="Car Name:", font=("Helvetica", 14)).pack()
         car_name_entry = tk.Entry(edit_window, textvariable=car_name_var)
         car_name_entry.pack()
 
-        tk.Label(edit_window, text="Year:").pack()
+        tk.Label(edit_window, text="Year:", font=("Helvetica", 14)).pack()
         year_entry = tk.Entry(edit_window, textvariable=year_var)
         year_entry.pack()
 
-        tk.Label(edit_window, text="Engine Type:").pack()
+        tk.Label(edit_window, text="Engine Type:", font=("Helvetica", 14)).pack()
         engine_type_entry = tk.Entry(edit_window, textvariable=engine_type_var)
         engine_type_entry.pack()
 
-        tk.Label(edit_window, text="Image URL:").pack()
+        tk.Label(edit_window, text="Image URL:", font=("Helvetica", 14)).pack()
 
         # Function to handle file selection
         def choose_image():
@@ -206,7 +206,7 @@ def edit_car_details(selected_company, selected_car):
                 image_url_var.set(file_path)
 
         # Button to choose image file
-        tk.Button(edit_window, text="Choose Image", command=choose_image).pack()
+        tk.Button(edit_window, text="Choose Image", command=choose_image, font=("Helvetica", 12)).pack()
 
         # Function to handle save button click
         def save_button_click():
@@ -238,7 +238,7 @@ def edit_car_details(selected_company, selected_car):
             show_details(cursor)
 
         # Save button
-        tk.Button(edit_window, text="Save Changes", command=save_button_click).pack()
+        tk.Button(edit_window, text="Save Changes", command=save_button_click, font=("Helvetica", 12)).pack()
 
 # Function to save changes
 def save_changes(company, car_name, new_year, new_engine_type, new_image_url):
@@ -340,7 +340,7 @@ root = tk.Tk()
 root.title("Car Database")
 
 # Load the background image
-bg_image = Image.open("background.jpg")  # Replace with your image path
+bg_image = Image.open("background.jpg")  # Replace with
 bg_image = bg_image.resize((root.winfo_screenwidth(), root.winfo_screenheight()), Image.LANCZOS)
 bg_photo = ImageTk.PhotoImage(bg_image)
 
@@ -367,7 +367,7 @@ add_button.pack(pady=int(bg_height * 0.003))
 show_button = create_button(root, "Show", lambda: show_details(cursor))
 show_button.pack(pady=int(bg_height * 0.003))
 
-edit_button = create_button(root, "Edit", edit_details)
+edit_button = create_button(root, "Edit", lambda: show_edit_options(selected_company, selected_car))
 edit_button.pack(pady=int(bg_height * 0.003))
 
 delete_car_button = create_button(root, "Delete Car", delete_car_button_click)
