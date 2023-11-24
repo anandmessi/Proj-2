@@ -3,12 +3,11 @@ from tkinter import ttk, messagebox, simpledialog, filedialog
 import mysql.connector
 from PIL import Image, ImageTk
 
-# Connect to the MySQL database server
 db = mysql.connector.connect(
     host="localhost",
     user="root",
     password="root",
-    database="car_database"  # Add this line to specify the database
+    database="car_database" 
 )
 
 # Create a cursor
@@ -379,5 +378,5 @@ delete_car_button.pack(pady=int(bg_height * 0.003))
 # Main loop
 root.mainloop()
 
-# Close the database connection when the GUI is closed
+
 db.close()
